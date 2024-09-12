@@ -1,5 +1,4 @@
 ---
-title: "BIOL703 Homework 2"
 date: "`r Sys.Date()`"
 author: " Carlos Alfaro-Quinde"
 output: pdf_document
