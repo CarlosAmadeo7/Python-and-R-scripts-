@@ -1,0 +1,236 @@
+---
+title: "BIOL703 Homework 2"
+date: "`r Sys.Date()`"
+author: " Carlos Alfaro-Quinde"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message=FALSE,
+                      fig.height = 4, fig.width = 8)
+```
+# Analysis of hg18 refseq genes
+## Part 1: UCSC Genome Browser
+
+### Question 1: How many chromosomes are there in human genome?
+The human genome has 25 chromosomes, from chromosome number 1 to chromosome number 2, chromosome X,Y and M.
+
+### Question 2: What’s the longest chromosome and what’s its length?
+The longest chromosome is the chromosome 1 with approximately 248 mpb.
+
+### Question 3: What’s the total length of human genome for assembled size and sequenced size?
+The assembled size has total of 3.16 B and the sequenced size has a 2.96 B.
+
+### Question 4: What’s the short description of Nanog gene?
+Nanog gene <- Homo sapiens nanog homeobox, transcript variant 1, mRNA 
+
+### Question 5: What’s the genomic location of the gene, e.g., chromosome, start and end?
+The genomic location of the gene mentioned above is Ch12 : from 7,789,402 to 7,799,146 position.
+
+### Question 6: What’s the strand direction, coding size and exon count of the gene?
+The strand direction is + from 5` to 3`, it has a coding size of 5481 and it has a total of 4 exons.
+
+### Question 7: What’s the RefSeq Accession for the gene? Hint: under “Other Names for This Gene”.
+The RefSeq Accession is NM024865.
+
+
+## Part2: Analyzing the hg18 refseq gene dataset 
+### Downloading the genome 
+```{r Uploading the file }
+# Uploading the file to RStudio
+
+library(GenomeInfoDb)
+human_genome <- read.delim("C:/Users/amade/Downloads/hhh.txt", header=TRUE, sep = '\t')
+```
+
+## Question 1: Number of genes 
+### 1.1 What is the total number of genes in the dataset? 
+After analyzing the dataset,it was noticed that the number of rows in the dataset correspond to a single gene,therefore,the number of genes can be found by using the "length function" 
+
+```{r Finding the lenght of genes in the dataset}
+L<- length(human_genome$name)
+print(paste("The number of genes in the dataset is", L))
+```
+### 1.2 What is the number of genes in each one of the chromosomes? 
+The number of genes in each chromosome can be found by creating for loop and then iterate through every chromosome(defined in a vector before). We are just counting the chromosomes that does not contain any variants.
+```{r Number of genes per chromosome}
+# Creation of a character vector with all the chromosomes names 
+chromosomes<- c(paste0("chr", 1:22), "chrX", "chrY","chrM")
+# Looping each one of them 
+for (i in chromosomes){
+  chr_count <- sum(human_genome$chrom ==i)
+  print(paste(i, ":",chr_count))
+}
+```
+### 1.3 Total number of genes in the strand + and strand -
+The total number of genes in the whole dataset can be found by indexing first all genes that correspond to the + and - strand respectively and then found the number of rows( number of genes) in each one. 
+```{r Positive and negative strand dataset}
+# Creating a dataset" positive strand "
+positive_strand <- human_genome[human_genome$ strand =="+",]
+# Creating a dataset" negative strand "
+negative_strand <- human_genome[human_genome$ strand =="-",]
+# Printing the number of rows in each dataset
+x <-nrow(positive_strand)
+y <-nrow(negative_strand)
+print(paste("The number of genes in the + strand is" , x))
+print(paste("The number of genes in the - strand is" , y))
+
+```
+## Question 2: Gene Length
+### 2.1 What is the distribution of gene length?
+In order to find out the distribution of gene length, we need to calculate the length of each gene by subtracting the end point and the start point of transcription initiation, then, add that variable to the dataset and finally plot them for visualization.
+```{r Gene Length}
+# Creating another column with all the gene length. 
+human_genome$gene_lenght<- human_genome$txEnd- human_genome$txStart
+```
+### 2.2 Are gene lengths different on + and - strands?
+We can evaluate that by plotting the gene length differences between the positive and negative strand.
+```{r Plotting the positive and negative strand}
+# Creating positive and negative strand datasets 
+p_strand<- human_genome[human_genome$ strand =="+",]
+n_strand<- human_genome[human_genome$ strand =="-",]
+# Plotting the distribution difference as histograms 
+par(mfrow = c(1, 2))
+hist(p_strand$gene_lenght,
+     main="Gene Lenght distribution on the positive strand",
+     cex.main=0.9,
+     xlab="Gene Lenght",
+     ylab= "Frequency",
+     ylim=c(0,80000),
+     xlim=c(0,700000),
+     col="red",
+     freq=TRUE,
+     breaks=50,
+     ps=30)
+hist(n_strand$gene_lenght,
+     main="Gene Lenght distribution on the negative strand",
+     cex.main=0.9,
+     xlab="Gene Lenght",
+     ylab= "Frequency",
+     ylim=c(0,80000),
+     xlim=c(0,700000),
+     col="blue",
+     freq=TRUE,
+     breaks=50,
+     ps=30)
+
+```
+After plotting the gene length of the positive and negative strand, we can observe some differences, there are longer genes in the positive strand compare to the negative strand.
+
+## 3. Find the longest and shortest gene in the dataset and add a short description about them 
+In order to find the longest and shortest we are going to use the "which. max" and "which.min" command 
+```{r Longest and Shortest gene}
+# Finding the shortest and longest gene 
+longest_gene <- human_genome[which.max(human_genome$gene_lenght),]
+shortest_gene <- human_genome[which.min(human_genome$gene_lenght),]
+l_gene <- longest_gene$name
+s_gene <- shortest_gene$name
+print(paste("The longest gene in the dataset is", l_gene))
+print(paste("The shortest gene in the dataset is", s_gene))
+
+```
+### The Longest gene 
+The longest gene is the NM_001415888.1 located in the chromosome 16, positive strand , with a length of 2473620 bp and a count of 18 exons to transcribe. This gene express for the protein: RNA binding fox-1 homolog 1, which belong to Fox-1 family of RNA-binding proteins which is evolutionarily conserved, and regulates tissue-specific alternative splicing in metazoa. Fox-1 recognizes a (U)GCAUG stretch in regulated exons or in flanking introns. The protein binds to the C-terminus of ataxin-2 and may contribute to the restricted pathology of spinocerebellar ataxia type 2 (SCA2).
+### The Shortest gene 
+The shortest gene is the NR_003499.1. located in the chromosome 15, positive strand, with a length 33 bp, and a just 1 exon to transcribe. This gene express the protein: Homo sapiens small nucleolar RNA, C/D box 115-47 (SNORD115-47), small nucleolar RNA.
+  
+## Question 4:
+### Exon counts: Are number of exons for genes different on on + and - strands?
+To find out the number of exons in each one of the strands, we can plot the difference between the positive and the negative strand exon counts.
+```{r Exon counts}
+# Getting the positive and negative exon counts 
+Positive_exons<- p_strand$exonCount
+Negative_exons<- n_strand$exonCount
+# Plotting the differences as histograms
+par(mfrow = c(1, 2))
+hist(Positive_exons,
+     main="Exon count distribution on the positive strand",
+     cex.main=0.9,
+     xlab="Exon Count",
+     ylab= "Frequency",
+     ylim=c(0,80000),
+     xlim = c(0,150),
+     col="green",
+     freq=TRUE,
+     breaks=30,
+     )
+hist(Negative_exons,
+     main="Exon count distribution on the negative strand",
+     cex.main=0.9,
+     xlab="Exon Count",
+     ylab= "Frequency",
+     ylim=c(0,80000),
+     xlim = c(0,150),
+     col="gray",
+     freq=TRUE,
+     breaks=30,
+     )
+
+```
+After plotting, we can see that there are more frequency values of Exon Count in the negative strand compared to the positive strand. There are more exon counts with short values in the negative strand compared to th positive strand, as well as counts more than 50 in the negative strand compared to the positive strand.
+
+## Question 5: 
+### Are exons counts and gene length correlated in the whole dataset?
+We can perform a Pearson correlation between the two datasets as well as plotting to each other to see the correlation between gene lengths and exon counts  
+```{r Correlation in the dataset}
+# Exon and gene length in the whole dataset 
+exonCount<-human_genome$exonCount
+geneLenght<-human_genome$gene_lenght
+plot(exonCount,geneLenght,
+     col="red",
+     main="Distribution of gene lenght and exon Count ",
+     type="p")
+
+```
+```{r Pearson correlation}
+# Pearson correlation of geneLenght and Exoncounts in the dataset 
+correlation <- cor(exonCount, geneLenght, use = "complete.obs", method = "pearson")
+print(paste("The correlation between exonCount and gene_length in the whole dataset is :", correlation))
+#### Pearson correlation of geneLenght and Exoncounts in the positive strand 
+ps<-cor(p_strand$exonCount, p_strand$gene_lenght,use = "complete.obs", method = "pearson")
+###  Pearson correlation of geneLenght and Exoncounts in the negative strand 
+ns<- cor(n_strand$exonCount, n_strand$gene_lenght,use = "complete.obs", method = "pearson")
+print(paste("The correlation between exonCount and gene_length in the positive strand is :", ps))
+print(paste("The correlation between exonCount and gene_length in the negative strand is : ", ns))
+
+```
+While the general correlation is a positive between the exonCOunt and the geneLenght,  there are some values > 100 (ExonCOunt) in the plot that might be shifting the correlation. 
+
+## Question 6: 
+### Gene density: What are the average gene numbers per mega bps on each chromosome?
+As definition gene density is the ratio of the number of genes per number of base pairs in a chromosome. In order to find out the average number of genes per megabase, I am going to use the library (GenomeInfoDb) to find out the length of each chromosome and then calculated Mb(1e6) , and then I am calculating the number of genes per chromosome per Mb.
+
+```{r Gene density}
+# Installing the package 
+#if (!require("BiocManager", quietly = TRUE))
+  #install.packages("BiocManager")
+# Find out the length of the chromosomes
+# Loading the information and getting the sizes of the chromosomes 
+hg38_chrom_length<-getChromInfoFromUCSC("hg38")
+#print(hg38_chrom_length)
+hg38_length<-hg38_chrom_length$size[1:25]
+# Find the length of the genes in each chromosomes and store it in a vector
+chromosomes<- c(paste0("chr", 1:22), "chrX", "chrY","chrM")
+ans <-vector(length=length(chromosomes))
+k=1
+for (i in chromosomes){
+  chrom_data <- human_genome[human_genome$chrom == i,]
+  ans[k]= nrow(chrom_data)
+  k=k+1
+}
+# Then convert the length of each chromosome in MB by dividing it by 1e6
+ratio_mb <- hg38_length/1e6
+# Calculating the gene density by dividing the number of genes per chromosome and the ratio_mb
+gene_density <- ans / ratio_mb
+# Putting everything in a dataframe for visualization purposes 
+gene_density_data <- data.frame(
+  chromosome <-chromosomes,
+  Number_of_Genes = ans,
+  Chromosome_Length_Mb = ratio_mb,
+  Gene_Density = gene_density
+)
+print(gene_density_data)
+
+```
+The chromosome with the most gene density is the mitochondrial chromosome with 784.59774, followed by the chromosome 19 with 157.27354/mb
+
